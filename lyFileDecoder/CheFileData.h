@@ -25,23 +25,27 @@ enum DataIdxEnum{
 	eData_21 ,
 	eData_22 ,
 	eData_23 ,
-	eData_24 ,
-	eData_25 
+	eData_24
 };
 
 struct sLyData
 {
-	int nNum;
-	
-	float fUnkown_9;
+	int		*nNumber;
+	WORD	*wYear;
+	BYTE	*byteMonth;
+	BYTE	*byteDay;
+	BYTE	*byteHour;
+	BYTE	*byteMinute;
 
-	WORD wYear;
-	BYTE byteMonth;
-	BYTE byteDay;
-	BYTE byteHour;
-	BYTE byteMinute;
+	BYTE	*byteHour2;
+	BYTE	*byteMinute2;
 
-	float fValues[24];
+	float	*fValues[23];
+	float    fNox;
+	//--------------
+
+	char *	pDataBuffer;
+	int		nDataLen;
 };
 
 class CLyData
@@ -56,17 +60,15 @@ public:
 	sLyData * GetData(){return &m_slyData;}
 
 public:
-	static long	DataToValue(long);
-	static long	ValueToData(long);
-
-	int		GetDataCnt();
-	bool	GetDataByIdx(int, double & );
-	bool	SetDataByIdx(int, double);
+	bool	GetDataByIdx(DataIdxEnum, float & );
+	bool	SetDataByIdx(DataIdxEnum, float);
+	bool	GetDataByIdx(DataIdxEnum, int & );
+	bool	SetDataByIdx(DataIdxEnum, int);
 
 	CString GetLastErr(){return m_lastErr;}
 
 protected:
-	void	Clear();
+	void	Clear(bool bByInit = false);
 
 protected:
 	sLyData	m_slyData;

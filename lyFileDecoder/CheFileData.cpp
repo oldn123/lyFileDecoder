@@ -5,7 +5,7 @@
 
 CLyData::CLyData(void)
 {
-	Clear();
+	Clear(true);
 }
 
 
@@ -24,8 +24,7 @@ bool CLyData::SaveFile(LPCTSTR sFile)
 
 	do 
 	{
-		
-
+		fwrite(m_slyData.pDataBuffer, 1, m_slyData.nDataLen, fp);
 	} while (false);
 
 	fclose(fp);
@@ -52,69 +51,149 @@ bool CLyData::LoadFile(LPCTSTR sInput)
 
 	do 
 	{
-		m_slyData.nNum = *(int*)&pDatas[5];
-		m_slyData.fUnkown_9 = *(float*)&pDatas[9];
-		m_slyData.wYear = *(WORD*)&pDatas[0x0d];
-		m_slyData.byteMonth = *(BYTE*)&pDatas[0x0f];
-		m_slyData.byteDay = *(BYTE*)&pDatas[0x10];
-		m_slyData.byteHour = *(BYTE*)&pDatas[0x11];
-		m_slyData.byteMinute = *(BYTE*)&pDatas[0x12];
+		 if(*(BYTE*)&pDatas[0] != 0x5A) 
+		 {
+			 break;
+		 }
 
-		float * pfDatas = (float*)&pDatas[0x13];
-		m_slyData.fValues[eData_2] = pfDatas[10];
-		m_slyData.fValues[eData_3] = pfDatas[14];
-		m_slyData.fValues[eData_4] = pfDatas[15];
-		m_slyData.fValues[eData_5] = pfDatas[0];
-		m_slyData.fValues[eData_6] = pfDatas[1];
-		m_slyData.fValues[eData_7] = pfDatas[4];
-		m_slyData.fValues[eData_8] = pfDatas[3];
-		m_slyData.fValues[eData_9] = pfDatas[17];
-		m_slyData.fValues[eData_10] = pfDatas[18];
+		 if (*(BYTE*)&pDatas[1] == 0xA5)
+		 {
+			 m_slyData.nNumber = (int*)&pDatas[5];
+			 m_slyData.fValues[eData_2] = (float*)&pDatas[9];
 
-		m_slyData.fValues[eData_11] = pfDatas[16];	//int
-		m_slyData.fValues[eData_12] = pfDatas[5];
-		m_slyData.fValues[eData_13] = pfDatas[2];
-		m_slyData.fValues[eData_14] = pfDatas[13];
-		m_slyData.fValues[eData_15] = pfDatas[12];
-		m_slyData.fValues[eData_16] = pfDatas[23];
-		m_slyData.fValues[eData_17] = pfDatas[11];
-		m_slyData.fValues[eData_18] = pfDatas[6];
-		m_slyData.fValues[eData_19] = pfDatas[8];
+			 int nTimePos = 0x0d;
+			 m_slyData.wYear = (WORD*)&pDatas[nTimePos];
+			 m_slyData.byteMonth = (BYTE*)&pDatas[nTimePos + 2];
+			 m_slyData.byteDay = (BYTE*)&pDatas[nTimePos + 3];
+			 m_slyData.byteHour = (BYTE*)&pDatas[nTimePos + 4];
+			 m_slyData.byteMinute = (BYTE*)&pDatas[nTimePos + 5];
+
+			 float * pfDatas = (float*)&pDatas[0x13];
+			 m_slyData.fValues[eData_3] = &pfDatas[14];
+			 m_slyData.fValues[eData_4] = &pfDatas[15];
+			 m_slyData.fValues[eData_5] = &pfDatas[0];
+			 m_slyData.fValues[eData_6] = &pfDatas[1];
+			 m_slyData.fValues[eData_7] = &pfDatas[4];
+			 m_slyData.fValues[eData_8] = &pfDatas[3];
+			 m_slyData.fValues[eData_9] = &pfDatas[17];
+			 m_slyData.fValues[eData_10] = &pfDatas[18];
+
+			 m_slyData.fValues[eData_11] = &pfDatas[16];	//int*
+			 m_slyData.fValues[eData_12] = &pfDatas[5];
+			 m_slyData.fValues[eData_13] = &pfDatas[2];
+			 m_slyData.fValues[eData_14] = &pfDatas[13];
+			 m_slyData.fValues[eData_15] = &pfDatas[12];
+			 m_slyData.fValues[eData_16] = &pfDatas[23];
+			 m_slyData.fValues[eData_17] = &pfDatas[11];
+			 m_slyData.fValues[eData_18] = &pfDatas[6];
+			 m_slyData.fValues[eData_19] = &pfDatas[8];
+
+			 int nPos = (DWORD)&pfDatas[24] - (DWORD)&pDatas[0];
+			 m_slyData.fValues[eData_20] = (float*)&pDatas[nPos];
+			 m_slyData.fValues[eData_21] = (float*)&pDatas[nPos + 4];
+			 m_slyData.fValues[eData_22] = (float*)&pDatas[nPos + 8];
+			 m_slyData.fValues[eData_23] = (float*)&pDatas[nPos + 0x0c];
+			 m_slyData.fValues[eData_24] = (float*)&pDatas[nPos + 0x10];
+
+			 //NOx=1.53 x NO + NO2 
+			 m_slyData.fNox = 1.53 * *(m_slyData.fValues[eData_22]) + *(m_slyData.fValues[eData_23]);	
+		 }
+		 else if (*(BYTE*)&pDatas[1] == 0x01)
+		 {//6По
+			 int nTimePos = 0x02;
+			 m_slyData.wYear = (WORD*)&pDatas[nTimePos];
+			 m_slyData.byteMonth = (BYTE*)&pDatas[nTimePos + 2];
+			 m_slyData.byteDay = (BYTE*)&pDatas[nTimePos + 3];
+			 m_slyData.byteHour = (BYTE*)&pDatas[nTimePos + 4];
+			 m_slyData.byteMinute = (BYTE*)&pDatas[nTimePos + 5];
+
+			 assert(*(BYTE*)&pDatas[8] == 0x5A);
+			 m_slyData.byteHour2 = (BYTE*)&pDatas[9];
+			 m_slyData.byteMinute2 = (BYTE*)&pDatas[0x0A];
+
+			 int nPos = 0x50;
+			 m_slyData.fValues[eData_20] = (float*)&pDatas[nPos];
+			 m_slyData.fValues[eData_21] = (float*)&pDatas[nPos + 4];
+			 m_slyData.fValues[eData_22] = (float*)&pDatas[nPos + 8];
+			 m_slyData.fValues[eData_23] = (float*)&pDatas[nPos + 0x0c];
+			 m_slyData.fValues[eData_24] = (float*)&pDatas[nPos + 0x10];
+
+			 //NOx=1.53 x NO + NO2 
+			 m_slyData.fNox = 1.53 * *(m_slyData.fValues[eData_22]) + *(m_slyData.fValues[eData_23]);	
+		 }
+		 else 
+		 {
+			 assert(false);
+			 break;
+		 }
 		
-		m_slyData.fValues[eData_20] = pfDatas[24];
-		m_slyData.fValues[eData_21] = pfDatas[25];
-		m_slyData.fValues[eData_22] = pfDatas[26];
-		m_slyData.fValues[eData_23] = pfDatas[27];
-		m_slyData.fValues[eData_24] = pfDatas[28];
-		//m_slyData.fValues[eData_25] = pfDatas[12];
+		
+		m_slyData.pDataBuffer = pDatas;
+		m_slyData.nDataLen	= nflen;
 
 	} while (false);
 
 	fclose(fp);
-	m_strInputfile = sInput;
 
+	if (m_slyData.pDataBuffer)
+	{
+		m_strInputfile = sInput;
+		return true;
+	}
+	else
+	{
+		delete [] pDatas;
+	}
+	return false;
+}
+
+bool CLyData::GetDataByIdx(DataIdxEnum nIdx, int & val)
+{
+	val = *(int*)&m_slyData.fValues[nIdx];
 	return true;
 }
 
-
-int	CLyData::GetDataCnt()
+bool CLyData::SetDataByIdx(DataIdxEnum nIdx, int val)
 {
-	return 0;
+	*m_slyData.fValues[nIdx] = *(float*)&val;
+	return true;
 }
 
-bool CLyData::GetDataByIdx(int nIdx, double & fRetData)
+bool CLyData::GetDataByIdx(DataIdxEnum nIdx, float & fRetData)
 {
-
-	return false;
+	fRetData = *m_slyData.fValues[nIdx];
+	return true;
 }
 
-bool CLyData::SetDataByIdx(int nIdx, double fVal)
+bool CLyData::SetDataByIdx(DataIdxEnum nIdx, float fVal)
 {
-
-	return false;
+	*m_slyData.fValues[nIdx] = fVal;
+	return true;
 }
 
-void CLyData::Clear()
+void CLyData::Clear(bool bByInit)
 {
+	if (bByInit)
+	{
+		m_slyData.pDataBuffer = NULL;
+		m_slyData.nDataLen = 0;
+	}
 	
+	if (m_slyData.pDataBuffer)
+	{
+		delete [] m_slyData.pDataBuffer;
+		m_slyData.pDataBuffer = NULL;
+	}
+	m_slyData.nDataLen = 0;
+
+	m_slyData.nNumber	= NULL;
+	m_slyData.wYear		= NULL;
+	m_slyData.byteMonth	= NULL;
+	m_slyData.byteDay	= NULL;
+	m_slyData.byteHour	= NULL;
+	m_slyData.byteMinute= NULL;
+	m_slyData.byteHour2	= NULL;
+	m_slyData.byteMinute2	= NULL;
+	memset(&m_slyData.fValues[0], 0, sizeof(float)*23);
+	m_slyData.fNox = 0;
 }
